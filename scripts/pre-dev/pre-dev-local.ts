@@ -123,7 +123,7 @@ const postgresRunning = await $`docker ps --filter name=${POSTGRES_CONTAINER} --
 
 if (postgresRunning.trim() !== POSTGRES_CONTAINER) {
   logger.info('Starting PostgreSQL...', undefined, 'Script')
-  await $`docker-compose up -d postgres`
+  await $`docker compose up -d postgres`
 
   let attempts = 0
   while (attempts < 30) {
@@ -150,7 +150,7 @@ const redisRunning = await $`docker ps --filter name=${REDIS_CONTAINER} --format
 
 if (redisRunning.trim() !== REDIS_CONTAINER) {
   logger.info('Starting Redis...', undefined, 'Script')
-  await $`docker-compose up -d redis`.then(async () => {
+  await $`docker compose up -d redis`.then(async () => {
     await new Promise(resolve => setTimeout(resolve, 2000))
     logger.info('✅ Redis started', undefined, 'Script')
   }).catch(() => {
@@ -165,7 +165,7 @@ const minioRunning = await $`docker ps --filter name=${MINIO_CONTAINER} --format
 
 if (minioRunning.trim() !== MINIO_CONTAINER) {
   logger.info('Starting MinIO...', undefined, 'Script')
-  await $`docker-compose up -d minio`.then(async () => {
+  await $`docker compose up -d minio`.then(async () => {
     await new Promise(resolve => setTimeout(resolve, 2000))
     logger.info('✅ MinIO started', undefined, 'Script')
   }).catch(() => {

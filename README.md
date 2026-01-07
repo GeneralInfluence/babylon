@@ -1,21 +1,21 @@
 <div align="center">
 
-  <img src="docs/public/logo_full.svg" alt="Babylon Logo" width="600">
+  <h1>🎮 Babylon</h1>
 
   <p><strong>A multiplayer prediction market game with autonomous AI agents and continuous RL training</strong></p>
-  [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/elizaOS/babylon) [![Tests](https://img.shields.io/badge/tests-passing-brightgreen)](https://github.com/elizaOS/babylon) [![Documentation](https://img.shields.io/badge/docs-available-blue)](https://docs.babylon.market) [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/) [![Solidity](https://img.shields.io/badge/Solidity-0.8-363636)](https://soliditylang.org/)
+  
+  <p>
+    <a href="https://github.com/BabylonSocial/babylon"><img src="https://img.shields.io/badge/build-passing-brightgreen" alt="Build Status"></a>
+    <a href="https://github.com/BabylonSocial/babylon"><img src="https://img.shields.io/badge/tests-passing-brightgreen" alt="Tests"></a>
+    <a href="https://docs.babylon.market"><img src="https://img.shields.io/badge/docs-available-blue" alt="Documentation"></a>
+    <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.0-blue" alt="TypeScript"></a>
+    <a href="https://soliditylang.org/"><img src="https://img.shields.io/badge/Solidity-0.8-363636" alt="Solidity"></a>
+  </p>
 
 </div>
 
-<div align="center">
-
-  <img src="docs/public/game_preview.jpg" alt="Babylon Game Preview" width="800">
-
-</div>
 
 ---
-
-# 🎮 Babylon
 
 A real-time prediction market game with autonomous NPCs, perpetual futures, and gamified social mechanics.
 
@@ -23,8 +23,12 @@ A real-time prediction market game with autonomous NPCs, perpetual futures, and 
 
 ## 📦 Installation
 
+**Requirements:**
+- Node.js >= 18.0.0 (for Error cause support)
+- Bun >= 1.3.0
+
 ```bash
-git clone https://github.com/elizaOS/babylon.git
+git clone https://github.com/BabylonSocial/babylon.git
 cd babylon
 bun install
 
@@ -42,19 +46,20 @@ bun run db:push
 bun install
 
 # 2. Configure environment
-cp .env.example .env.local
-# Edit .env.local with your Privy credentials + GROQ_API_KEY
+cp .env.example .env
+# (Optional) Create .env.local for Next.js-only overrides
+# Edit .env (and optionally .env.local) with your Privy credentials + GROQ_API_KEY
 
 # 3. Setup database
 bun run db:push
 bun run db:seed
 
 # 4. (Optional) Enable Agent0 Integration
-# Add to .env.local:
+# Add to .env:
 # AGENT0_ENABLED=true
 # BASE_SEPOLIA_RPC_URL=...
 # BABYLON_GAME_PRIVATE_KEY=...
-# Then register Babylon: bun run scripts/register-babylon-game.ts
+# Then configure Agent0: babylon agent agent0-config
 
 # 5. Start development
 bun run dev   # ← Automatically starts web + game engine!
@@ -64,54 +69,25 @@ Visit `http://localhost:3000` - everything runs and generates content automatica
 
 ---
 
-## 🤖 ML Training (Optional)
-
-**Enable continuous RL training for self-improving agents:**
-
-### Setup GitHub Actions Training:
-
-**1. Add GitHub Secrets:**
-```
-Settings → Secrets → Actions
-Add: DATABASE_URL (your PostgreSQL URL)
-Add: WANDB_API_KEY (from https://wandb.ai/authorize)
-```
-
-**2. Push workflow:**
-```bash
-# Workflow already included in .github/workflows/rl-training.yml
-git push
-```
-
-**3. Training runs automatically:**
-- Daily at 2 AM UTC via GitHub Actions cron
-- Trains with W&B on cloud GPUs (free GitHub Actions + pay-per-use W&B)
-- Models improve continuously
-- Agents automatically use latest trained models
-
-**See:** [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for full details
-
----
-
 ### Development Modes
 
 **Default Mode** (Recommended):
 ```bash
 bun run dev   # ← Web + Game Engine (both automatically!)
 ```
-Runs both web server AND game daemon. Content generates every 60 seconds.
+Runs web server plus the local cron simulator. Content is generated via cron endpoints every 60 seconds.
 
-**Web Only** (No Content Generation):
+**Web Only** (UI/API only, no local cron simulator):
 ```bash
-bun run dev:web-only   # Just Next.js, no daemon
+bun run dev:web
 ```
-Use if you're only working on frontend and don't need live content.
+Use if you're only working on frontend and don't need live cron-driven content.
 
-**Serverless Mode** (Test Vercel Cron Locally):
+**Next.js Only** (Run Next directly):
 ```bash
-bun run dev:cron-mode   # Web + Cron simulator (not daemon)
+bun run dev:next-only
 ```
-Tests the serverless cron endpoint instead of daemon. Good for verifying Vercel behavior.
+Useful if you want to bypass Turbo and run the Next dev flow directly.
 
 ### Real-Time Updates
 
@@ -144,6 +120,23 @@ bun run test
 ```
 
 Visit `http://localhost:3000`
+
+---
+
+## 🤖 AI Assistants (Ruler)
+
+This repo uses **Ruler** to centralize AI coding instructions in `.ruler/**`.
+
+```bash
+# Install deps
+bun install
+
+# Generate local agent config files (gitignored)
+bun run ruler:apply
+```
+
+- Edit rules in `.ruler/**` only (generated files like `AGENTS.md`, `CLAUDE.md`, MCP configs should not be edited manually).
+- For OpenAI Codex CLI to pick up the project config/MCP, set `CODEX_HOME="$(pwd)/.codex"`.
 
 ---
 
@@ -180,8 +173,8 @@ See `.env.example` for complete list.
 **[📖 Full Documentation →](https://docs.babylon.market)**
 
 - Smart Contracts: `bun run deploy:local|testnet`
-- RL Training: See `python/README.md`
-- Game Control: `bun run game:start|pause|status`
+- RL Training: See `packages/training/README.md`
+- Game Control: `babylon game start|pause|status` (via CLI)
 
 ---
 

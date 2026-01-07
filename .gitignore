@@ -2,16 +2,14 @@
 
 # dependencies
 /node_modules
-/.pnp
-.pnp.js
-.yarn/install-state.gz
-
-# testing
-/coverage
 
 # next.js
 /.next/
 /out/
+.next/
+dist/
+.turbo/
+/.turbo/
 
 # production
 /build
@@ -19,17 +17,20 @@
 # misc
 .DS_Store
 *.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+.serena/
+.cursor/
+.vscode/
 
 # local env files
 .env*.local
 .env
 
+# Symlinked env files in apps
+apps/*/.env
+apps/*/.env.local
+
 # act (local GitHub Actions) secrets
+.secrets
 .secrets.local
 
 # vercel
@@ -39,10 +40,14 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+**/node_modules/**
+
 # Foundry
-cache/
+/cache/
+packages/contracts/cache/
 out/
 broadcast/
+packages/contracts/dependencies
 
 # Python
 __pycache__/
@@ -51,39 +56,69 @@ __pycache__/
 *.so
 .Python
 venv/
+.venv/
 ENV/
 *.egg-info/
 dist/
 build/
 
-# Training data
-training_data/trajectories/
-training_data/datasets/
+# Training data and simulation output
+training-data-output/
+training_data/
 training_recording/
-storage/
+training-data/
+simulation-output/
+trained_models/
+benchmark-results/
+benchmarks/
 
-# Weights & Biases
-wandb/
+# Generated output directories
+benchmark-output/
+research-output/
 
-# Test results
-test-results/
-playwright-report/
-.playwright/
+# Data exports
+**/*.jsonl
+**/scored_trajectories.csv
 
-# Debug stuff
+# Debug and storage
+/storage/
+apps/web/debug/
+packages/experimental/honest-demo-output/
+_docs/
 debug/
 
-# Generated actor images (stored in Vercel Blob instead)
-public/images/actors/
-public/images/actor-banners/
-public/images/organizations/
-public/images/org-banners/
+# Test output directory
+.output/
 
-# User uploads (stored in Vercel Blob in production)
-public/uploads/profiles/*
-public/uploads/covers/*
-public/uploads/posts/*
-!public/uploads/.gitkeep
-!public/uploads/*/.gitkeep
+# Dependency analysis artifacts
+circular-deps.*
 
-python/trained_models
+# Local metrics and audit files
+.metrics/
+**/MARKETS_FRONTEND_AUDIT.md
+
+# Continuous Claude cache (local only)
+.claude/cache/
+.claude/tsc-cache/
+/thoughts
+
+# START Ruler Generated Files
+/.agent/rules/ruler.md
+/.agent/rules/ruler.md.bak
+/.codex/config.json
+/.codex/config.json.bak
+/.codex/config.toml
+/.codex/config.toml.bak
+/.cursor/mcp.json
+/.cursor/mcp.json.bak
+/.gemini/settings.json
+/.gemini/settings.json.bak
+/.mcp.json
+/.mcp.json.bak
+/AGENTS.md
+/AGENTS.md.bak
+/CLAUDE.md
+/CLAUDE.md.bak
+/opencode.json
+/opencode.json.bak
+# END Ruler Generated Files

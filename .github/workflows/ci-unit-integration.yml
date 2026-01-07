@@ -15,9 +15,72 @@ env:
   CI: true
 
 jobs:
+  # Python training pipeline tests
+  python-training-tests:
+    name: Python Training Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: babylon_test
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: babylon_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5434:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: 'packages/training/python/requirements.txt'
+
+      - name: Install Python dependencies
+        working-directory: packages/training/python
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+
+      - name: Run Python unit tests
+        working-directory: packages/training/python
+        run: |
+          echo "🧪 Running Python unit tests..."
+          pytest tests/ -v --ignore=tests/integration/ --ignore=tests/e2e/ -x
+        env:
+          PYTHONPATH: src
+
+      - name: Run Python integration tests (JSON mode)
+        working-directory: packages/training/python
+        run: |
+          echo "🧪 Running Python JSON mode integration tests..."
+          pytest tests/integration/test_json_mode_integration.py -v -x
+        env:
+          PYTHONPATH: src
+
+      - name: Run Python integration tests (DB mode)
+        working-directory: packages/training/python
+        run: |
+          echo "🧪 Running Python DB integration tests..."
+          pytest tests/integration/test_db_integration.py -v -x
+        env:
+          PYTHONPATH: src
+          DATABASE_URL: postgresql://babylon_test:test_password@localhost:5434/babylon_test
+
   test-unit-integration:
     name: Unit & Integration Tests
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     timeout-minutes: 45
 
     services:
@@ -59,6 +122,13 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Clear build caches
+        run: |
+          echo "🧹 Clearing Turborepo and Bun caches..."
+          bunx turbo clean
+          rm -rf node_modules/.cache
+          echo "✅ Cache cleanup complete"
+
       - name: Setup test environment
         env:
           # Use CI test database directly
@@ -88,6 +158,7 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           DIRECT_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
         run: |
+          set -euo pipefail
           # Use the setup script for consistent database initialization
           bash scripts/setup-test-db.sh 2>&1 | sed -E 's/(Datasource|ep-soft-wildflower|neondb|@[^[:space:]]*\.neon\.tech)/[REDACTED]/g'
 
@@ -97,8 +168,9 @@ jobs:
           SKIP_ENV_VALIDATION: true
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
         run: |
+          set -euo pipefail
           echo "🏗️ Building project for tests..."
-          bun run build 2>&1 | sed -E 's/(Datasource|ep-soft-wildflower|neondb|@[^[:space:]]*\.neon\.tech)/[REDACTED]/g'
+          bunx turbo build --filter=!babylon-docs 2>&1 | sed -E 's/(Datasource|ep-soft-wildflower|neondb|@[^[:space:]]*\.neon\.tech)/[REDACTED]/g'
           echo "✅ Build complete"
 
       - name: Run Unit Tests
@@ -110,7 +182,7 @@ jobs:
         run: |
           echo "🧪 Running unit tests with database connection..."
           echo "📊 Database URL configured: ${DATABASE_URL:0:30}..."
-          bun test tests/unit/ --coverage
+          bun test packages/testing/unit/ --preload ./packages/testing/unit/preload.ts --coverage
         continue-on-error: false
 
       - name: Start Next.js dev server
@@ -127,7 +199,7 @@ jobs:
           PRIVY_TEST_PASSWORD: ${{ secrets.PRIVY_TEST_PASSWORD || '' }}
         run: |
           echo "🚀 Starting Next.js dev server for integration tests..."
-          SKIP_ENV_VALIDATION=1 bunx --bun next dev > /tmp/next-server.log 2>&1 &
+          SKIP_ENV_VALIDATION=1 bunx --bun next dev apps/web -p 3000 > /tmp/next-server.log 2>&1 &
           echo $! > /tmp/next-server.pid
           echo "📝 Server PID: $(cat /tmp/next-server.pid)"
 
@@ -154,11 +226,11 @@ jobs:
         run: |
           echo "🔐 Setting up Playwright authentication for integration tests..."
           # First run E2E auth setup
-          bunx playwright test --project=setup || {
+          cd packages/testing && bunx playwright test --project=setup || {
             echo "⚠️  E2E auth setup failed, but continuing..."
           }
           # Then run integration auth setup to extract tokens
-          bunx playwright test --project=setup-integration-auth || {
+          cd packages/testing && bunx playwright test --project=setup-integration-auth || {
             echo "⚠️  Integration auth setup failed, but continuing..."
           }
           echo "✅ Playwright authentication setup complete"
@@ -204,8 +276,8 @@ jobs:
           PINATA_JWT: ${{ secrets.PINATA_JWT || '' }}
           AGENT0_SUBGRAPH_URL: ${{ secrets.AGENT0_SUBGRAPH_URL || '' }}
         run: |
-          bun test tests/integration/
-          bun test src/engine/__tests__/
+          bun test packages/testing/integration/ --preload ./packages/testing/integration/preload.ts
+          bun test packages/engine/src/__tests__/
         continue-on-error: false
 
       - name: Stop Next.js dev server
@@ -221,5 +293,3 @@ jobs:
             echo "📝 Server logs (last 50 lines):"
             tail -50 /tmp/next-server.log
           fi
-
-

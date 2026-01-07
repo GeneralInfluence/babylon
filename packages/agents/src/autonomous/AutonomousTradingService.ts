@@ -6,6 +6,8 @@
  */
 
 import { countTokensSync, truncateToTokenLimitSync } from '@babylon/api';
+// CLS imports
+import { NoopTrajectoryWriter, TrajectoryEvent } from '@babylon/cls';
 import {
   db,
   desc,
@@ -51,6 +53,9 @@ export class AutonomousTradingService {
     side?: string;
     marketType?: 'prediction' | 'perp';
   }> {
+    // CLS feature flag and writer
+    const clsEnabled = process.env.CLS_ENABLED === 'true';
+    const trajectoryWriter = clsEnabled ? new NoopTrajectoryWriter() : null;
     // Check if this is an NPC (has entry in StaticDataRegistry)
     const npcActor = StaticDataRegistry.getActor(agentUserId);
     const isNpc = !!npcActor;
@@ -284,6 +289,23 @@ If holding:
         undefined,
         'AutonomousTrading'
       );
+      // CLS trajectory logging for hold
+      if (clsEnabled && trajectoryWriter) {
+        const event: TrajectoryEvent = {
+          id: `${agentUserId}-${Date.now()}-hold`,
+          ts: Date.now(),
+          agentId: agentUserId,
+          type: 'decision',
+          context: {
+            prompt: finalPrompt,
+            agentDisplayName,
+          },
+          action: { action: 'hold' },
+          outcome: { reasoning: tradeDecision.reasoning },
+          tags: ['autonomous', 'trading', 'hold'],
+        };
+        await trajectoryWriter.append(event);
+      }
       return {
         tradesExecuted: 0,
         marketId: undefined,
@@ -395,6 +417,23 @@ If holding:
         { agentUserId },
         'AutonomousTrading'
       );
+      // CLS trajectory logging for failed trade
+      if (clsEnabled && trajectoryWriter) {
+        const event: TrajectoryEvent = {
+          id: `${agentUserId}-${Date.now()}-fail`,
+          ts: Date.now(),
+          agentId: agentUserId,
+          type: 'action',
+          context: {
+            prompt: finalPrompt,
+            agentDisplayName,
+          },
+          action: trade,
+          outcome: { error: result.error },
+          tags: ['autonomous', 'trading', 'fail'],
+        };
+        await trajectoryWriter.append(event);
+      }
       return {
         tradesExecuted: 0,
         marketId: undefined,
@@ -409,6 +448,24 @@ If holding:
       undefined,
       'AutonomousTrading'
     );
+
+    // CLS trajectory logging for successful trade
+    if (clsEnabled && trajectoryWriter) {
+      const event: TrajectoryEvent = {
+        id: `${agentUserId}-${Date.now()}-trade`,
+        ts: Date.now(),
+        agentId: agentUserId,
+        type: 'action',
+        context: {
+          prompt: finalPrompt,
+          agentDisplayName,
+        },
+        action: trade,
+        outcome: { result },
+        tags: ['autonomous', 'trading', 'success'],
+      };
+      await trajectoryWriter.append(event);
+    }
 
     return {
       tradesExecuted: 1,

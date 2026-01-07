@@ -312,6 +312,10 @@
         "next": "^16.0.7",
       },
     },
+    "packages/cls": {
+      "name": "@babylon/cls",
+      "version": "0.0.1",
+    },
     "packages/contracts": {
       "name": "@babylon/contracts",
       "version": "0.1.0",
@@ -705,6 +709,8 @@
     "@babylon/api": ["@babylon/api@workspace:packages/api"],
 
     "@babylon/cli": ["@babylon/cli@workspace:apps/cli"],
+
+    "@babylon/cls": ["@babylon/cls@workspace:packages/cls"],
 
     "@babylon/contracts": ["@babylon/contracts@workspace:packages/contracts"],
 

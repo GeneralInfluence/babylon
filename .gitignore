@@ -20,6 +20,7 @@ dist/
 .serena/
 .cursor/
 .vscode/
+babylon-aphilos-cls.zip
 
 # local env files
 .env*.local

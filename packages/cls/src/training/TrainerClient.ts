@@ -14,7 +14,7 @@ export class NoopTrainerClient implements TrainerClient {
   async submitBatch(_batch: TrainingBatch): Promise<void> {
     // no-op
   }
-  async getStatus() {
+  async getStatus(): Promise<{ lastCheckpoint: string; lastWindow: [number, number]; }> {
     return { lastCheckpoint: 'none', lastWindow: [0, 0] };
   }
 }

@@ -1,4 +1,5 @@
-import type { Bandit, BanditStats, StrategyMode } from './Bandit';
+import type { Bandit } from './Bandit';
+import type { BanditStats, StrategyMode } from './types';
 
 // Example StrategyRouter for developer reference
 export class StrategyRouter {

@@ -1,17 +1,18 @@
-import type { Bandit, BanditStats, StrategyMode } from './Bandit';
+import type { Bandit } from './Bandit';
+import type { BanditStats, StrategyMode, BanditArm } from './types';
 
 // Dummy UCB implementation for scaffolding
 export class UCBBandit implements Bandit {
-  select(stats: BanditStats, context?: Record<string, unknown>): StrategyMode {
+  select(stats: BanditStats, _context?: Record<string, unknown>): StrategyMode {
     // Example: select arm with highest meanReward
     return stats.arms.reduce(
-      (best, arm) => (arm.meanReward > best.meanReward ? arm : best),
+      (best: BanditArm, arm: BanditArm) => (arm.meanReward > best.meanReward ? arm : best),
       stats.arms[0]
     ).mode;
   }
   update(stats: BanditStats, mode: StrategyMode, reward: number): BanditStats {
     // Example: increment count and update meanReward
-    const arms = stats.arms.map((arm) =>
+    const arms = stats.arms.map((arm: BanditArm) =>
       arm.mode === mode
         ? {
             ...arm,

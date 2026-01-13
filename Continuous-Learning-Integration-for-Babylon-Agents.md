@@ -19,9 +19,9 @@ After successful beta testing, we will move to a full market release as a premiu
 
  - *Estimated Development Timeline:* 5-8 weeks for initial integration and testing.
  - *Estimated Cost:* Approximately $60,000-$80,000, depending on team size and hourly rates.
- -- Integrating CLS Components into Babylon: 3 weeks
- -- Setting Up Testing and Benchmarking Environment: 2 weeks
- -- Validation and Iteration: 3 weeks
+     - Integrating CLS Components into Babylon: 3 weeks
+     - Setting Up Testing and Benchmarking Environment: 2 weeks
+     - Validation and Iteration: 3 weeks
 
 ## Distribution Strategy
 
